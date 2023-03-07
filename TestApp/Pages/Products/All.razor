@@ -1,0 +1,49 @@
+﻿@page "/products/all"
+
+@using TestApp.Data.Context;
+@using TestApp.Data.Models;
+
+@inject NavigationManager navigation
+@inject ProductDbContext productContext
+<h3>All Products</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Product Name</th>
+            <th scope="col">Product Description</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Price</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Products.Any())
+        {
+            foreach (var product in Products)
+            {
+                <tr>
+                    <td>@product.Name</td>
+                    <td>@product.Description</td>
+                    <td>@product.Quantity</td>
+                    <td>@product.Price</td>
+                    <td>
+                        <a href="products/edit/@product.Id">Edit</a>
+                        <a href="products/delete/@product.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<a class="my-2" href="products/create">Create new Product</a>
+
+@code {
+    public List<Product> Products { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        Products = productContext.Products.ToList();
+    }
+}

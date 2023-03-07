@@ -1,0 +1,124 @@
+﻿@page "/products/create"
+@page "/products/edit/{id:guid}"
+@page "/products/delete/{id:guid}"
+
+@using TestApp.Data.Context;
+@using TestApp.Data.Models;
+
+@inject NavigationManager navigation
+@inject ProductDbContext productContext
+
+<h3>@Title</h3>
+
+<EditForm Model="Product" OnValidSubmit="Submit">
+    @if (!navigation.Uri.Contains("delete"))
+    {
+        <div class="form-group">
+            <label for="Name">Name</label>
+            <InputText class="form-control" @bind-Value="Product.Name" />
+            <ValidationMessage For="@(() => Product.Name)" />
+        </div>
+        <div class="form-group">
+            <label for="Description">Description</label>
+            <InputText class="form-control" @bind-Value="Product.Description" />
+            <ValidationMessage For="@(() => Product.Description)" />
+        </div>
+        <div class="form-group">
+            <label for="Quantity">Quantity</label>
+            <InputNumber class="form-control" @bind-Value="Product.Quantity" />
+            <ValidationMessage For="@(() => Product.Quantity)" />
+        </div>
+        <div class="form-group">
+            <label for="Price">Price</label>
+            <InputNumber class="form-control" @bind-Value="Product.Price" />
+            <ValidationMessage For="@(() => Product.Price)" />
+        </div>
+    }
+    <div class="my-2">
+        @Message
+    </div>
+    <div class="my-2">
+        <button class="btn btn-info" type="submit">@Title</button>
+    </div>
+</EditForm>
+
+<a class="my-2" href="products/all">Show all products</a>
+
+
+
+@code {
+    [Parameter]
+    public Guid? id { get; set; }
+
+    public string Title { get; set; }
+
+    public string Message { get; set; } = string.Empty;
+
+    public Product? Product { get; set; } = new();
+
+    public async Task Submit()
+    {
+        if (navigation.Uri.Contains("edit"))
+        {
+            try
+            {
+                var product = productContext.Products.FirstOrDefault(x => x.Id == id);
+                product.Name = Product.Name;
+                product.Description = Product.Description;
+                product.Quantity = Product.Quantity;
+                product.Price = Product.Price;
+                productContext.SaveChanges();
+                Message = "Product edited successfully";
+            }
+            catch (Exception)
+            {
+                Message = "Could not edit product";
+            }
+
+        }
+        else if (navigation.Uri.Contains("create"))
+        {
+            try
+            {
+                Product.Id = Guid.NewGuid();
+                productContext.Products.Add(Product);
+                productContext.SaveChanges();
+                Message = "Product created successfully";
+
+            }
+            catch (Exception)
+            {
+                Message = "Could not create product";
+            }
+
+        }
+        else if (navigation.Uri.Contains("delete"))
+        {
+            try
+            {
+                var product = productContext.Products.FirstOrDefault(x => x.Id == id);
+                productContext.Products.Remove(product!);
+                productContext.SaveChanges();
+                Message = "Product deleted successfully";
+            }
+            catch (Exception)
+            {
+                Message = "Could not delete product";
+            }
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        Message = "";
+        Title = navigation.Uri.Contains("create") ? "Create" : navigation.Uri.Contains("delete") ? "Delete" : navigation.Uri.Contains("edit") ? "Edit" : "Details";
+        if (navigation.Uri.Contains("edit"))
+        {
+            Product = productContext.Products.FirstOrDefault(x => x.Id == id);
+            if (Product == null)
+            {
+                Message = "Product not found!";
+            }
+        }
+    }
+}
